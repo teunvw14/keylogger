@@ -1,0 +1,1 @@
+This is a simple keylogger written in C++ designed for windows.
