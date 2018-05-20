@@ -21,6 +21,15 @@ class Settings
         const static unsigned long mail_interval;
         static unsigned long get_mail_interval();
 
+        const static bool autoStartProgram;
+        static bool get_autoStartProgram();
+
+        const static bool autoSafeMigrate;
+        static bool get_autoSafeMigrate();
+
+        const static bool exitOnMigrateFailure;
+        static bool get_exitOnMigrateFailure();
+
         const static bool useVerboseLogs;
         static bool get_useVerboseLogs();
 };

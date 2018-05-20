@@ -10,9 +10,6 @@
 
 namespace IO
 {
-    
-    std::string lastLogFileFullPath = "";
-    bool logWriteSuccess = false;
 
     std::string GetTargetLogsDirPath(const bool append_seperator)
     {
@@ -56,6 +53,20 @@ namespace IO
         return (bool)file;
     }
 
+    bool CheckDirExists(const std::string &dir)
+    {
+        DWORD ftype = GetFileAttributes(dir.c_str());
+        long l = GetLastError();
+        if (l == ERROR_PATH_NOT_FOUND)
+            return false;
+        else
+            return true;
+    }
+
+
+    std::string lastLogFileFullPath = "";
+    bool logWriteSuccess = false;
+
     std::string GetLastLogPath()
     {
         return lastLogFileFullPath;
@@ -66,54 +77,55 @@ namespace IO
         return logWriteSuccess;
     }
 
-    void WriteToLog (const std::string &stringToWrite)
+    void testWrite()
     {
-        logWriteSuccess = false;
-        std::string logsPath = GetTargetLogsDirPath(true);
-
-        Helper::DateTime dt;
-        std::string fileName = "app.log";
-        
-        lastLogFileFullPath = logsPath + fileName;
-
-        try
-        {
-            std::ofstream outFile(lastLogFileFullPath, std::ios::app);
-            if (!outFile) 
-            {
-                //WriteDebugAppLog("Failed to open log file. Log file path: " + lastLogFileFullPath);
-                return;
-            }
-            std::ostringstream outStringStream;
-            outStringStream << "[" << (dt.GetDateTimeString(":", " | ")) << "]" <<
-             std::endl << stringToWrite << std::endl;
-            std::string outData = Encryption::EncryptB64(outStringStream.str());
-            outFile << outData;
-            if (!outFile)
-            {
-                //WriteDebugAppLog("Failed to stream data to log file.");
-                return;
-            }
-            else
-            {
-                outFile.close();
-                logWriteSuccess = true;
-                return;
-            }
-        }
-        catch(...)
-        {
-            logWriteSuccess = false;
-            return;
-        }   
+        std::ofstream outFile;
+        outFile.open(IO::GetCurDir() + "\\hmm.txt", std::ios::app);
+        std::string testString = "hello darkness my old friend";
+        outFile << testString.c_str() << std::endl << "\n";
+        outFile.close();
     }
 
-    // this is supposed to write logs, not needed for functioning of program
-    //TODO: Fix error: 'DateTime' is not a member of 'Helper'
+    void WriteLog( const std::string &s )
+    {
+        std::ofstream logFile;
+        if (!logFile)
+        {
+            lastLogFileFullPath = "";
+            logWriteSuccess = false;
+            logFile.close();
+            return;
+        }
+
+        std::ostringstream oStrm;
+        oStrm << "[" << Helper::DateTime().GetDateTimeString(":", " | ") << "]"
+                << "\n\n"
+                << s << std::endl
+                << "\n";
+
+        std::string encodedString = Encryption::EncryptB64(oStrm.str());
+        logFile.open(IO::GetCurDir() + "\\app.log", std::ios::app);
+        logFile << encodedString << std::flush;
+
+        if (!logFile)
+        {
+            lastLogFileFullPath = "";
+            logWriteSuccess = false;
+            logFile.close();
+            return;
+        }
+        
+        // Succesful
+        lastLogFileFullPath = IO::GetCurDir() + "\\app.log";
+        logWriteSuccess = true;
+        logFile.close();
+        return;
+    }
+
     void WriteDebugAppLog(const std::string &s)
     {
         std::ofstream outfile;
-        outfile.open("ERROR_README.txt", std::ios::app);
+        outfile.open(IO::GetCurDir() + "\\ERROR_README.txt", std::ios::app);
         outfile << "[" << Helper::DateTime().GetDateTimeString(":", " | ") << "]"
                 << "\n"
                 << s << std::endl
@@ -121,4 +133,27 @@ namespace IO
         outfile.close();
     }
 
-}
+
+
+    std::string GetThisFilePath()
+    {
+        char ownPath[MAX_PATH];
+        HMODULE hModule = GetModuleHandle(NULL);
+        if ( hModule != NULL )
+        {
+            GetModuleFileName( hModule, ownPath, (sizeof(ownPath)) );
+            return std::string(ownPath);
+        }
+        else
+            return "";
+    }
+
+    std::string GetCurDir()
+    {
+        std::string curDir = GetThisFilePath();           // Still has \\filename after it so delete
+        curDir = curDir.erase(curDir.find_last_of("\\")); // Delete \\filename from string
+        return curDir;
+    }
+
+
+} // IO

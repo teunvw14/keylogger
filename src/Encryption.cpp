@@ -41,11 +41,12 @@ namespace Encryption
     
     std::string EncryptB64( std::string s)
     {
-        std::string SALT1 = "DZ6k6u@arM";
-        std::string SALT2 = "Hiqn-0jvTf";
-        std::string SALT3 = "IPj$(f56y8";
+        std::string SALT1 = "DZ6k6uarM";
+        std::string SALT2 = "Hiqn0jvTf";
+        std::string SALT3 = "IPjf56y8";
 
         s = SALT1 + s + SALT2 + SALT3;
+        
         s = Base64::base64_encode(s);
         s.insert(7, SALT2);
         s += SALT1;
