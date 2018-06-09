@@ -1,8 +1,6 @@
 This is a simple keylogger written in C++ designed for windows.
 
-______________
- Installation
-______________
+#Installation
 
 Requirements:
  - Visual C++ 11
@@ -14,9 +12,7 @@ then compile by going to the main folder in cmd and typing
 You can give the .exe file any name you want.
 The executable will be in the bin folder.
 
-_____
- Use
-_____
+# Use
 
 The keylogger will only work if the following requirements are met:
 - The settings in the setttings.cpp file were properly set 
