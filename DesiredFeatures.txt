@@ -1,2 +1,0 @@
-- Make the salts used for encryption user configurable.
-- Create the salts used for encryption randomly and mail them instead of hardcoding them. (Not sure if this is safe.)

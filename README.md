@@ -4,7 +4,7 @@ This is a simple keylogger written in C++ designed for windows.
 
 Requirements:
  - Visual C++ 11
- - MingW / g++ compiler
+ - Any C++ compiler (g++ was used by author)
  
 First set settings in the src/settings.cpp file,
 then compile by going to the main folder in cmd and typing
