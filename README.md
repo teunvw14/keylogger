@@ -25,3 +25,7 @@ The keylogger will only work if the following requirements are met:
 To start the keylogger, launch the .exe file in any location and (if set to do so in the settings.cpp file) it will try to move itself to a safe path, rename itself to "Windows Audio Helper.exe" and start logging all input.
 The program will send the logged keys in a file "app.log" to the configured email-adress every x hours. You can set the interval between these mails in the settings.cpp file.
 The logs are encrypted using base64 in combination with some salts. To decrypt the files, use the "decrypt.exe" in the "B64_DECODER" folder like this: "~\Keylogger\B64_DECODER\decrypt.exe app.log decryptedFileName.log".
+
+# Legal notice
+
+The creator is not responsible for any illegal use of this software.
